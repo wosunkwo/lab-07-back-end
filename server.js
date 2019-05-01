@@ -13,21 +13,13 @@ var weatherArr = [];
 
 app.get('/location', (request, response) => {
   try {
-    // const locationData = require('./data/geo.json');
     let searchQuery = request.query.data;
-    // let formattedAddress = locationData.results[0].formatted_address;
-    // let latitude = locationData.results[0].geometry.location.lat;
-    // let longitude = locationData.results[0].geometry.location.lng;
-
-    // let locationInstance = new Place(searchQuery, formattedAddress, latitude, longitude);
-    // response.status(200).send(locationInstance);
-    // response.send(locationInstance);
     let googleGeocode = `https://maps.googleapis.com/maps/api/geocode/json?address=${searchQuery}&key=${process.env.GEOCODE_API_KEY}`;
     superagent.get(googleGeocode)
       .end((err, googleMapsApiResponse)=>{
-        console.log(googleMapsApiResponse.body.results[0].geometry.location.lng);
         const locationInstance = new Place(searchQuery, googleMapsApiResponse.body.results[0].formatted_address, googleMapsApiResponse.body.results[0].geometry.location.lat, googleMapsApiResponse.body.results[0].geometry.location.lng);
         response.send(locationInstance);
+        weatherFunc(googleMapsApiResponse.body.results[0].geometry.location.lat, googleMapsApiResponse.body.results[0].geometry.location.lng);
       });
 
   } catch( error ) {
@@ -36,32 +28,36 @@ app.get('/location', (request, response) => {
   }
 });
 
-
-app.get('/weather', (request, response) => {
-  try {
-    const weatherData = require('./data/darksky.json');
-    for(let i=0; i<8; i++){
-      let forecast =  weatherData.daily.data[i].summary;
-      let time = weatherData.daily.data[i].time;
-      new Weather(forecast, time);
+function weatherFunc(lat, lng){
+  app.get('/weather', (request, response) => {
+    weatherArr = [];
+    try {
+      let darkskyWeatherData = `https://api.darksky.net/forecast/${process.env.DARKSKY_API_KEY}/${lat},${lng}`;
+      superagent.get(darkskyWeatherData)
+        .end((err, darkskyApiResponse)=>{
+          for(let i =0; i < 8; i++){
+            new Weather(darkskyApiResponse.body.daily.data[i].summary, darkskyApiResponse.body.daily.data[i].time);
+            console.log(darkskyApiResponse.body.daily.data[i].summary);
+          }
+        });
+      response.send(weatherArr);
+    } catch( error ) {
+      console.log('Sorry, There was an Error');
+      response.status(500).send('Sorry, There was an Error');
     }
-    response.status(200).send(weatherArr);
-
-  } catch( error ) {
-    console.log('Sorry, There was an Error');
-    response.status(500).send('Sorry, There was an Error');
-  }
-});
-
+  });
+}
 
 app.listen(PORT,()=> console.log(`Listening on port ${PORT}`));
 
+//Location constructor
 function Place (searchQuery, formattedAddress, lat, lng) {
   this.search_query = searchQuery;
   this.formatted_query = formattedAddress;
   this.latitude = lat;
   this.longitude = lng;
 }
+
 
 function Weather (forecast, time) {
   this.forecast = forecast;
