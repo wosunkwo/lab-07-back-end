@@ -10,6 +10,8 @@ app.use(cors());
 const PORT = process.env.PORT || 3000;
 var weatherArr = [];
 let eventObj = [];
+var lat;
+var lng;
 
 app.get('/location', (request, response) => {
   try {
@@ -17,9 +19,10 @@ app.get('/location', (request, response) => {
     let googleGeocode = `https://maps.googleapis.com/maps/api/geocode/json?address=${searchQuery}&key=${process.env.GEOCODE_API_KEY}`;
     superagent.get(googleGeocode)
       .end((err, googleMapsApiResponse)=>{
+        lat = googleMapsApiResponse.body.results[0].geometry.location.lat;
+        lng = googleMapsApiResponse.body.results[0].geometry.location.lng;
         const locationInstance = new Place(searchQuery, googleMapsApiResponse.body.results[0].formatted_address, googleMapsApiResponse.body.results[0].geometry.location.lat, googleMapsApiResponse.body.results[0].geometry.location.lng);
         response.send(locationInstance);
-        weatherFunc(googleMapsApiResponse.body.results[0].geometry.location.lat, googleMapsApiResponse.body.results[0].geometry.location.lng);
         eventbrite(googleMapsApiResponse.body.results[0].geometry.location.lat, googleMapsApiResponse.body.results[0].geometry.location.lng);
       });
 
@@ -48,25 +51,22 @@ function eventbrite(lat, lng) {
     }
   });
 }
-
-function weatherFunc(lat, lng){
-  app.get('/weather', (request, response) => {
-    weatherArr = [];
-    try {
-      let darkskyWeatherData = `https://api.darksky.net/forecast/${process.env.DARKSKY_API_KEY}/${lat},${lng}`;
-      superagent.get(darkskyWeatherData)
-        .end((err, darkskyApiResponse)=>{
-          darkskyApiResponse.body.daily.data.map(function(weather) {
-            new Weather(weather.summary, weather.time);
-          });
-          response.send(weatherArr);
+app.get('/weather', (request, response) => {
+  weatherArr = [];
+  try {
+    let darkskyWeatherData = `https://api.darksky.net/forecast/${process.env.DARKSKY_API_KEY}/${lat},${lng}`;
+    superagent.get(darkskyWeatherData)
+      .end((err, darkskyApiResponse)=>{
+        darkskyApiResponse.body.daily.data.map(function(weather) {
+          new Weather(weather.summary, weather.time);
         });
-    } catch( error ) {
-      console.log('Sorry, There was an Error');
-      response.status(500).send('Sorry, There was an Error');
-    }
-  });
-}
+        response.send(weatherArr);
+      });
+  } catch( error ) {
+    console.log('Sorry, There was an Error');
+    response.status(500).send('Sorry, There was an Error');
+  }
+});
 
 
 
@@ -80,6 +80,7 @@ function Place (searchQuery, formattedAddress, lat, lng) {
   this.longitude = lng;
 }
 
+//Weather constructor
 function Weather (forecast, time) {
   this.forecast = forecast;
   this.time = new Date(time*1000).toDateString();
