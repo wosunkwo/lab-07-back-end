@@ -9,7 +9,7 @@ app.use(cors());
 
 const PORT = process.env.PORT || 3000;
 var weatherArr = [];
-
+let eventObj = [];
 
 app.get('/location', (request, response) => {
   try {
@@ -20,6 +20,7 @@ app.get('/location', (request, response) => {
         const locationInstance = new Place(searchQuery, googleMapsApiResponse.body.results[0].formatted_address, googleMapsApiResponse.body.results[0].geometry.location.lat, googleMapsApiResponse.body.results[0].geometry.location.lng);
         response.send(locationInstance);
         weatherFunc(googleMapsApiResponse.body.results[0].geometry.location.lat, googleMapsApiResponse.body.results[0].geometry.location.lng);
+        eventbrite(googleMapsApiResponse.body.results[0].geometry.location.lat, googleMapsApiResponse.body.results[0].geometry.location.lng);
       });
 
   } catch( error ) {
@@ -27,6 +28,26 @@ app.get('/location', (request, response) => {
     response.status(500).send('Sorry, There was an Error');
   }
 });
+
+function eventbrite(lat, lng) {
+  app.get('/events', (request, response) => {
+    eventObj = [];
+    try {
+      let eventbrite = `https://www.eventbriteapi.com/v3/events/search?location.${lng}&location.${lat}&expand=venue`;
+      superagent.get(eventbrite)
+        .set(process.env.EVENTBRITE_API_KEY)
+        .end((err, eventbriteAPI)=>{
+          eventbriteAPI.events.map(function(events) {
+            new Events(events.url, events.name.text, events.start.local, event.summary);
+            response.send(eventObj.splice(20));
+          });
+        });
+    } catch (err) {
+      console.log('Error');
+      response.status(500).send('Error in Server');
+    }
+  });
+}
 
 function weatherFunc(lat, lng){
   app.get('/weather', (request, response) => {
@@ -38,8 +59,8 @@ function weatherFunc(lat, lng){
           darkskyApiResponse.body.daily.data.map(function(weather) {
             new Weather(weather.summary, weather.time);
           });
+          response.send(weatherArr);
         });
-      response.send(weatherArr);
     } catch( error ) {
       console.log('Sorry, There was an Error');
       response.status(500).send('Sorry, There was an Error');
@@ -59,9 +80,16 @@ function Place (searchQuery, formattedAddress, lat, lng) {
   this.longitude = lng;
 }
 
-
 function Weather (forecast, time) {
   this.forecast = forecast;
   this.time = new Date(time*1000).toDateString();
   weatherArr.push(this);
+}
+
+function Events (link, name, event_date, summary) {
+  this.link = link;
+  this.name = name;
+  this.event_date = event_date;
+  this.summary = summary;
+  eventObj.push(this);
 }
