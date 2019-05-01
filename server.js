@@ -10,7 +10,6 @@ app.use(cors());
 const PORT = process.env.PORT || 3000;
 var weatherArr = [];
 
-
 app.get('/location', (request, response) => {
   try {
     let searchQuery = request.query.data;
@@ -35,11 +34,13 @@ function weatherFunc(lat, lng){
       let darkskyWeatherData = `https://api.darksky.net/forecast/${process.env.DARKSKY_API_KEY}/${lat},${lng}`;
       superagent.get(darkskyWeatherData)
         .end((err, darkskyApiResponse)=>{
-           darkskyApiResponse.body.daily.data.map(function(weather) {
-           new Weather(weather.summary, weather.time);
-           });
+          darkskyApiResponse.body.daily.data.map(function(weather) {
+            // console.log(weather.summary);
+            new Weather(weather.summary, weather.time);
+          });
+          response.send(weatherArr);
         });
-      response.send(weatherArr);
+      // response.send(weatherArr);
     } catch( error ) {
       console.log('Sorry, There was an Error');
       response.status(500).send('Sorry, There was an Error');
@@ -57,7 +58,6 @@ function Place (searchQuery, formattedAddress, lat, lng) {
   this.latitude = lat;
   this.longitude = lng;
 }
-
 
 function Weather (forecast, time) {
   this.forecast = forecast;
