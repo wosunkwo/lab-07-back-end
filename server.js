@@ -33,13 +33,8 @@ app.get('/weather', (request, response) => {
   try {
     const weatherData = require('./data/darksky.json');
     weatherData.daily.data.map(function(weather) {
-      new Weather(weather.forecast ,weather.time);
+      new Weather(weather.summary, weather.time);
     });
-    // for(let i=0; i<8; i++){
-    //   let forecast =  weatherData.daily.data[i].summary;
-    //   let time = weatherData.daily.data[i].time;
-    //   new Weather(forecast, time);
-    // }
     response.status(200).send(weatherArr);
 
   } catch( error ) {
