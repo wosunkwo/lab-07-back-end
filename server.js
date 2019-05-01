@@ -3,7 +3,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const superagaent = require('superagent');
+const superagent = require('superagent');
 const app = express();
 app.use(cors());
 
@@ -13,15 +13,23 @@ var weatherArr = [];
 
 app.get('/location', (request, response) => {
   try {
-    const locationData = require('./data/geo.json');
+    // const locationData = require('./data/geo.json');
     let searchQuery = request.query.data;
-    let formattedAddress = locationData.results[0].formatted_address;
-    let latitude = locationData.results[0].geometry.location.lat;
-    let longitude = locationData.results[0].geometry.location.lng;
+    // let formattedAddress = locationData.results[0].formatted_address;
+    // let latitude = locationData.results[0].geometry.location.lat;
+    // let longitude = locationData.results[0].geometry.location.lng;
 
-    let locationInstance = new Place(searchQuery, formattedAddress, latitude, longitude);
+    // let locationInstance = new Place(searchQuery, formattedAddress, latitude, longitude);
     // response.status(200).send(locationInstance);
-    response.send(locationInstance);
+    // response.send(locationInstance);
+    let googleGeocode = `https://maps.googleapis.com/maps/api/geocode/json?address=${searchQuery}&key=${process.env.GEOCODE_API_KEY}`;
+    superagent.get(googleGeocode)
+      .end((err, googleMapsApiResponse)=>{
+        console.log(googleMapsApiResponse.body.results[0].geometry.location.lng);
+        const locationInstance = new Place(searchQuery, googleMapsApiResponse.body.results[0].formatted_address, googleMapsApiResponse.body.results[0].geometry.location.lat, googleMapsApiResponse.body.results[0].geometry.location.lng);
+        response.send(locationInstance);
+      });
+
   } catch( error ) {
     console.log('Sorry, There was an Error');
     response.status(500).send('Sorry, There was an Error');
