@@ -59,7 +59,7 @@ Actual time needed to complete: 45 minutes
 Number and name of feature: 5 EventBrite
 Estimate of time needed to complete: 1.5 hours
 Start time: 11:20
-Finish time: 
-Actual time needed to complete: 45 minutes
+Finish time: 2:00
+Actual time needed to complete: 2 hours 30 mins
 
 
