@@ -23,7 +23,6 @@ app.get('/location', (request, response) => {
         lng = googleMapsApiResponse.body.results[0].geometry.location.lng;
         const locationInstance = new Place(searchQuery, googleMapsApiResponse.body.results[0].formatted_address, googleMapsApiResponse.body.results[0].geometry.location.lat, googleMapsApiResponse.body.results[0].geometry.location.lng);
         response.send(locationInstance);
-        eventbrite(googleMapsApiResponse.body.results[0].geometry.location.lat, googleMapsApiResponse.body.results[0].geometry.location.lng);
       });
 
   } catch( error ) {
@@ -32,25 +31,25 @@ app.get('/location', (request, response) => {
   }
 });
 
-function eventbrite(lat, lng) {
-  app.get('/events', (request, response) => {
-    eventObj = [];
-    try {
-      let eventbrite = `https://www.eventbriteapi.com/v3/events/search?location.longitude=${lng}&location..latitude=${lat}&expand=venue`;
-      superagent.get(eventbrite)
-        .set(process.env.EVENTBRITE_API_KEY)
-        .end((err, eventbriteAPI)=>{
-          eventbriteAPI.events.map(function(events) {
-            new Events(events.url, events.name.text, events.start.local, event.summary);
-            response.send(eventObj.splice(20));
-          });
+app.get('/events', (request, response) => {
+  eventObj = [];
+  try {
+    let eventbrite = `https://www.eventbriteapi.com/v3/events/search?location.longitude=${lng}&location..latitude=${lat}&expand=venue`;
+    superagent.get(eventbrite)
+      .set(process.env.EVENTBRITE_API_KEY)
+      .end((err, eventbriteAPI)=>{
+        eventbriteAPI.events.map(function(events) {
+          new Events(events.url, events.name.text, events.start.local, event.summary);
+          response.send(eventObj.splice(20));
         });
-    } catch (err) {
-      console.log('Error');
-      response.status(500).send('Error in Server');
-    }
-  });
-}
+      });
+  } catch (err) {
+    console.log('Error');
+    response.status(500).send('Error in Server');
+  }
+});
+
+
 app.get('/weather', (request, response) => {
   weatherArr = [];
   try {
