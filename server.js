@@ -35,10 +35,9 @@ function weatherFunc(lat, lng){
       let darkskyWeatherData = `https://api.darksky.net/forecast/${process.env.DARKSKY_API_KEY}/${lat},${lng}`;
       superagent.get(darkskyWeatherData)
         .end((err, darkskyApiResponse)=>{
-          for(let i =0; i < 8; i++){
-            new Weather(darkskyApiResponse.body.daily.data[i].summary, darkskyApiResponse.body.daily.data[i].time);
-            console.log(darkskyApiResponse.body.daily.data[i].summary);
-          }
+           darkskyApiResponse.body.daily.data.map(function(weather) {
+           new Weather(weather.summary, weather.time);
+           });
         });
       response.send(weatherArr);
     } catch( error ) {
@@ -47,6 +46,7 @@ function weatherFunc(lat, lng){
     }
   });
 }
+
 
 app.listen(PORT,()=> console.log(`Listening on port ${PORT}`));
 
