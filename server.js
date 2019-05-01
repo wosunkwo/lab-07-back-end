@@ -33,7 +33,7 @@ function eventbrite(lat, lng) {
   app.get('/events', (request, response) => {
     eventObj = [];
     try {
-      let eventbrite = `https://www.eventbriteapi.com/v3/events/search?location.${lng}&location.${lat}&expand=venue`;
+      let eventbrite = `https://www.eventbriteapi.com/v3/events/search?location.longitude=${lng}&location..latitude=${lat}&expand=venue`;
       superagent.get(eventbrite)
         .set(process.env.EVENTBRITE_API_KEY)
         .end((err, eventbriteAPI)=>{
