@@ -36,7 +36,7 @@ app.get('/events', (request, response) => {
   try {
     let eventbrite = `https://www.eventbriteapi.com/v3/events/search?location.longitude=${lng}&location..latitude=${lat}&expand=venue`;
     superagent.get(eventbrite)
-      .set(process.env.EVENTBRITE_API_KEY)
+      .set('Authorization', `Bearer ${process.env.EVENTBRITE_API_KEY}`)
       .end((err, eventbriteAPI)=>{
         eventbriteAPI.events.map(function(events) {
           new Events(events.url, events.name.text, events.start.local, event.summary);
