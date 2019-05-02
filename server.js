@@ -31,7 +31,6 @@ app.get('/location', (request, response) => {
 });
 
 app.get('/events', (request, response) => {
-  eventObj = [];
   try {
     let eventbrite = `https://www.eventbriteapi.com/v3/events/search?location.address=${request.query.data.formatted_query}`;
     superagent.get(eventbrite)
