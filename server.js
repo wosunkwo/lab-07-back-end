@@ -1,15 +1,14 @@
 'use strict';
 
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
 const app = express();
+require('dotenv').config();
 app.use(cors());
 
 const PORT = process.env.PORT || 3000;
 var weatherArr = [];
-let eventObj = [];
 var lat;
 var lng;
 
@@ -34,14 +33,15 @@ app.get('/location', (request, response) => {
 app.get('/events', (request, response) => {
   eventObj = [];
   try {
-    let eventbrite = `https://www.eventbriteapi.com/v3/events/search?location.longitude=${lng}&location..latitude=${lat}&expand=venue`;
+    let eventbrite = `https://www.eventbriteapi.com/v3/events/search?location.address=${request.query.data.formatted_query}`;
     superagent.get(eventbrite)
       .set('Authorization', `Bearer ${process.env.EVENTBRITE_API_KEY}`)
-      .end((err, eventbriteAPI)=>{
-        eventbriteAPI.events.map(function(events) {
-          new Events(events.url, events.name.text, events.start.local, event.summary);
-          response.send(eventObj.splice(20));
+      .then(eventbriteAPI=>{
+        const events = eventbriteAPI.body.events.map(eventData =>{
+          const event = new Events(eventData);
+          return event;
         });
+        response.send(events);
       });
   } catch (err) {
     console.log('Error');
@@ -68,10 +68,8 @@ app.get('/weather', (request, response) => {
 });
 
 
-
 app.listen(PORT,()=> console.log(`Listening on port ${PORT}`));
 
-//Location constructor
 function Place (searchQuery, formattedAddress, lat, lng) {
   this.search_query = searchQuery;
   this.formatted_query = formattedAddress;
@@ -79,17 +77,15 @@ function Place (searchQuery, formattedAddress, lat, lng) {
   this.longitude = lng;
 }
 
-//Weather constructor
 function Weather (forecast, time) {
   this.forecast = forecast;
   this.time = new Date(time*1000).toDateString();
   weatherArr.push(this);
 }
 
-function Events (link, name, event_date, summary) {
-  this.link = link;
-  this.name = name;
-  this.event_date = event_date;
-  this.summary = summary;
-  eventObj.push(this);
+function Events (event) {
+  this.link = event.url;
+  this.name = event.name.text;
+  this.event_date = new Date(event.start.local).toDateString();
+  this.summary = event.summary;
 }
